@@ -115,11 +115,21 @@ window.addEventListener(
 );
 
 const getPathForElement = (element: Element) => {
-  const instance = getReactInstanceForElement(element);
-  if (!instance || !instance._debugSource) {
-    console.warn("Couldn't find a React instance for the element", element);
-    return;
+  let instance = getReactInstanceForElement(element);
+  if (!instance) {
+      console.warn("Couldn't find a React instance for the element", element);
+      return;
   }
+
+  while (!instance._debugSource) {
+    if (!instance._debugOwner) {
+      console.warn("Couldn't find a React instance for the element", element);
+      return;
+    }
+
+    instance = instance._debugOwner;
+  }
+
   const { columnNumber = 1, fileName, lineNumber = 1 } = instance._debugSource;
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   return `${fileName}:${lineNumber}:${columnNumber}`;
